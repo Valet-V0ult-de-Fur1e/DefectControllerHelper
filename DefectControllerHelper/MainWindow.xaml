@@ -12,12 +12,15 @@
         <TextBox x:Name="KKT_id" Height="46" VerticalAlignment="Top" 
                  Margin="198,27,407,0" materialDesign:HintAssist.Hint="заводской номер"
                  Style="{StaticResource MaterialDesignFloatingHintTextBox}"></TextBox>
-        <Button Content="Выбрать" HorizontalAlignment="Left" Margin="634,27,0,0" VerticalAlignment="Top" Width="146" Height="46" Click="Get_Model_and_ID_Button_Click"/>
+        <Button Content="очистить" HorizontalAlignment="Left" Margin="634,27,0,0" VerticalAlignment="Top" Width="146" Height="46" Click="Get_Model_and_ID_Button_Click"/>
         <ListView x:Name="params_list" Margin="22,98,176,24">
         </ListView>
-        <Button Content="Добавить" HorizontalAlignment="Left" Margin="666,213,0,0" VerticalAlignment="Top" Width="100" RenderTransformOrigin="0.472,1.878" Height="67" Click="Add_Button_Click"/>
+        <Button Content="Добавить" HorizontalAlignment="Left" Margin="634,287,0,0" VerticalAlignment="Top" Width="146" RenderTransformOrigin="0.472,1.878" Height="67" Click="Add_Button_Click"/>
         <TextBox x:Name="KKT_inside_id" Height="46" VerticalAlignment="Top" 
             Margin="412,27,192,0" materialDesign:HintAssist.Hint="номер в кассе"
+            Style="{StaticResource MaterialDesignFloatingHintTextBox}"/>
+        <TextBox x:Name="Problem_Status_Box" Height="65" VerticalAlignment="Top" 
+            Margin="634,158,9,0" materialDesign:HintAssist.Hint="статус проблемы"
             Style="{StaticResource MaterialDesignFloatingHintTextBox}"/>
     </Grid>
 </Window>

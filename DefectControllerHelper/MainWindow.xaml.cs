@@ -38,6 +38,8 @@ namespace DefectControllerHelper
                             break;
                     }
                     worksheet.Cells[1, parameters.ElementAt(sheet_id).Value.Count + 2] = "стоимость ремонта";
+                    worksheet.Cells[1, parameters.ElementAt(sheet_id).Value.Count + 3] = "состояние";
+                    worksheet.Cells[1, parameters.ElementAt(sheet_id).Value.Count + 4] = "комментарий";
                     worksheet.Cells.EntireColumn.AutoFit();
                     worksheet.Cells.EntireRow.AutoFit();
                 }
@@ -49,7 +51,7 @@ namespace DefectControllerHelper
             string basepath = AppDomain.CurrentDomain.BaseDirectory;
             ExcelApp.Application.ActiveWorkbook.SaveAs(string.Format("Дефектовка {0} {1} {2}.xlsx", name, city, filedate));
         }
-        internal static void Add_New_Item(int id_model, List<List<string>> list_parameters_rusult, int id_item)
+        internal static void Add_New_Item(int id_model, List<List<string>> list_parameters_rusult, int id_item, string status)
         {
             worksheets = workbook.Worksheets;
             Excel.Worksheet worksheet = worksheets.Item[id_model + 1];
@@ -57,6 +59,7 @@ namespace DefectControllerHelper
             {
                 worksheet.Cells[id_item - 1, id_item_top + 1].Value = list_parameters_rusult[id_item_top][0];
             }
+            worksheet.Cells[id_item - 1, list_parameters_rusult.Count + 1].Value = status;
             ExcelApp.Application.ActiveWorkbook.Save();
         }
         public static void Clear_Data_Full()
@@ -71,7 +74,9 @@ namespace DefectControllerHelper
     public partial class MainWindow : Window
     {
         private static Dictionary<string, Dictionary<string, List<string>>> param = new Dictionary<string, Dictionary<string, List<string>>>();
+        private static Dictionary<string, int> kkt_prise_dictionary = new Dictionary<string, int>();
         private string PARAMETERS_PATH = "../../price_json.json";
+        private string MAIN_PARAMETERS_PATH = "../../price_models_json.json";
         private ExselWorker exsel_worker = new ExselWorker();
         public MainWindow()
         {
@@ -91,7 +96,9 @@ namespace DefectControllerHelper
         private void Parser()
         {
             string json = File.ReadAllText(PARAMETERS_PATH);
+            string main_json = File.ReadAllText(MAIN_PARAMETERS_PATH);
             param = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, List<string>>>>(json);
+            kkt_prise_dictionary = JsonConvert.DeserializeObject<Dictionary<string, int>>(main_json);
             SepareteParams();
             foreach (var parametr in param)
             {
@@ -105,7 +112,7 @@ namespace DefectControllerHelper
                 KKT_Model.Items.Add(new TextBlock { Text = model_name });
             }
         }
-        private void Get_Model_and_ID_Button_Click(object sender, RoutedEventArgs e)
+        private void Update_Params()
         {
             string model = KKT_Model.Text.ToString();
             string number = KKT_id.Text.ToString();
@@ -117,8 +124,18 @@ namespace DefectControllerHelper
             params_list.Items.Clear();
             foreach (var param_item in param[model])
             {
-                if (param_item.Key != "object_num") params_list.Items.Add(new CheckBox { Content = param_item.Key, IsChecked = false });
+                if (param_item.Key != "object_num")
+                {
+                    params_list.Items.Add(new CheckBox { Content = param_item.Key, IsChecked = false });
+                }
             }
+        }
+        private void Get_Model_and_ID_Button_Click(object sender, RoutedEventArgs e)
+        {
+            Update_Params();
+            KKT_id.Clear();
+            KKT_inside_id.Clear();
+            Problem_Status_Box.Clear();
         }
         private void Add_Button_Click(object sender, RoutedEventArgs e)
         {
@@ -148,7 +165,10 @@ namespace DefectControllerHelper
             }
             sum += update_price - max_price;
             parameters_item.Add(new List<string> { sum.ToString() });
-            ExselWorker.Add_New_Item(Array.IndexOf(param.Keys.ToArray(), KKT_Model.Text.ToString()), parameters_item, int.Parse(param[KKT_Model.Text.ToString()]["object_num"][0]));
+            if (kkt_prise_dictionary[KKT_Model.Text.ToString()] > sum && sum != 0) parameters_item.Add(new List<string> { "ремонт" });
+            else if (kkt_prise_dictionary[KKT_Model.Text.ToString()] < sum) parameters_item.Add(new List<string> { "утилизация" });
+            else if (sum == 0) parameters_item.Add(new List<string> { "рабочий" });
+            ExselWorker.Add_New_Item(Array.IndexOf(param.Keys.ToArray(), KKT_Model.Text.ToString()), parameters_item, int.Parse(param[KKT_Model.Text.ToString()]["object_num"][0]), Problem_Status_Box.Text.ToString());
         }
         protected override void OnClosed(EventArgs e)
         {
